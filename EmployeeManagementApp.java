@@ -1,21 +1,63 @@
-import java.util.Scanner;
-import java.util.ArrayList;
+package emp.assignment;
 
-class Employee
+import java.util.Scanner;
+
+abstract class Employee
 {
-	Scanner s= new Scanner(System.in);
 	private String name;
+	private int empId;
 	private int age;
 	private double salary;
 	private String designation;
-	Employee(String name,int age,double salary,String designation)
+	static int count=0;
+	Employee(Employee employees[], double salary,String designation)
 	{
-		this.name=name;
-		this.age=age;
+		getDetails(employees);
 		this.salary=salary;
 		this.designation=designation;	
 	}
-		
+	public void getDetails(Employee employees[])
+	{
+		Scanner s= new Scanner(System.in);
+		System.out.print("Enter name: ");
+		name=s.next();
+		System.out.print("Enter employee ID: ");
+		empId=s.nextInt();
+		for(int i=0;i<count;i++)
+		{	
+			if(employees[i].empId==empId)
+			{
+				System.out.println("Employee with this ID already exists!\n");
+				return;
+			}
+		}
+		System.out.print("Enter age: ");
+		age=s.nextInt();
+		count++;
+	}
+	public String getName()
+	{
+		return name;
+	}
+	public void setName(String name)
+	{
+		if(name.isEmpty())
+			System.out.println("Invalid name");
+		else
+			this.name=name;
+	}
+	public int getAge()
+	{
+		return age;
+	}
+	public void setAge(int age)
+	{
+		if(age<0 || age>60)
+			System.out.println("Invalid age");
+		else
+			this.age=age;
+	}
+
 	public double getSalary()
 	{
 		return salary;
@@ -27,26 +69,50 @@ class Employee
 		else
 			System.out.println("Invalid salary");
 	}
-	public void display()
+	final public void display()
 	{
 		System.out.println("Name: "+ name);
+		System.out.println("Emp ID: "+ empId);
 		System.out.println("Age: "+ age);
 		System.out.println("Salary: "+ salary);
 		System.out.println("Designation: "+ designation+"\n");
 	}
-	public void raiseSalary()
-	{
-		System.out.println("Salary of employees raised");
-	}
 
-	
+	public abstract void raiseSalary();
+
+	public static int removeEmp(Employee employees[])
+	{
+		Scanner sc= new Scanner(System.in);
+		System.out.print("Enter emp id :");
+		int empIdToRemove=sc.nextInt();
+		for(int i=0;i<count;i++)
+		{
+			if(employees[i].empId==empIdToRemove)
+				employees[i].display();
+			System.out.print("Do you really want to remove this employee record (Y/N) :");
+			char c=sc.next().charAt(0);
+			if(c=='Y' || c=='y')
+			{
+				for(int j=i;j<count-1;j++)
+				{	
+					employees[j]=employees[j+1];
+				}
+				System.out.println("Employee removed!");
+				return count-1;
+			}
+			else 
+				return count;
+		}
+		return count;
+	}
+		
 }
 
-class Clerk extends Employee
+final class Clerk extends Employee
 {
-	Clerk(String name,int age,double salary)
+	Clerk(Employee employees[])
 	{
-		super(name, age, salary, "Clerk");
+		super(employees, 20000, "Clerk");
 	}
 	public void raiseSalary()
 	{
@@ -54,24 +120,23 @@ class Clerk extends Employee
 	}
 }
 
-class  Programmer extends Employee
+final class  Programmer extends Employee
 {
-	Programmer(String name,int age,double salary)
+	Programmer(Employee employees[])
 	{
-		super(name, age, salary, "Programmer");
+		super(employees, 30000, "Programmer");
 	}
 	public void raiseSalary()
 	{
 		setSalary(getSalary()+5000);
 	}
-
 }
 
-class Manager extends Employee
+final class Manager extends Employee
 {
-	Manager(String name,int age,double salary)
+	Manager(Employee employees[])
 	{
-		super(name, age, salary, "Manager");
+		super(employees, 100000, "Manager");
 	}
 	public void raiseSalary()
 	{
@@ -86,13 +151,11 @@ class EmployeeManagementApp
 		Scanner s= new Scanner(System.in);
 		
 		int choice1, choice2;
-		String name;
-		int age;
-		ArrayList<Employee> employees= new ArrayList<>();
+		Employee employees[]= new Employee[100];
 		do
 		{
 			System.out.println("-------------------");
-			System.out.println("1. Create"+"\n"+"2. Display"+"\n"+"3. Raise Salary"+"\n"+"4. Exit");
+			System.out.println("1. Create"+"\n"+"2. Display"+"\n"+"3. Raise Salary"+"\n"+"4. Remove"+"\n"+"5. Exit");
 			System.out.println("-------------------");
 			System.out.print("Enter choice: ");
 			choice1=s.nextInt();
@@ -112,26 +175,14 @@ class EmployeeManagementApp
 						{
 
 							case 1:
-								System.out.print("Enter name: ");
-								name=s.next();
-								System.out.print("Enter age: ");
-								age=s.nextInt();
-								employees.add(new Clerk(name, age, 20000));
+								employees[Employee.count]=new Clerk(employees);
 								break;
 	
 							case 2:
-								System.out.print("Enter name: ");
-								name=s.next();
-								System.out.print("Enter age: ");
-								age=s.nextInt();
-								employees.add(new Programmer(name, age, 30000));
+								employees[Employee.count]=new Programmer(employees);
 								break;
 							case 3:
-								System.out.print("Enter name: ");
-								name=s.next();
-								System.out.print("Enter age: ");
-								age=s.nextInt();
-								employees.add(new Manager(name, age, 100000));
+								employees[Employee.count]=new Manager(employees);
 								break;
 							case 4:
 								break;
@@ -145,24 +196,26 @@ class EmployeeManagementApp
 					System.out.println("-------------------");
 					System.out.println("Employee Details:");
 					System.out.println("-------------------");
-					for(Employee e: employees)
-						e.display();
+					for(int i=0;i<Employee.count;i++)
+						employees[i].display();
 					break;
 
 				case 3:
-					System.out.println("Salary raised for employees");
-					for(Employee e: employees)
-						e.raiseSalary();
+					System.out.println("Salary raised for employees!");
+					for(int i=0;i<Employee.count;i++)
+						employees[i].raiseSalary();
 
 					break;
 				case 4:
+					Employee.count=Employee.removeEmp(employees);
+					break;
+				case 5:
 					break;
 				default:
 					System.out.println("Invalid option");
 			}
 		}
-		while(choice1!=4);
-		System.out.println("Total no. of employees created/added :"+employees.size());
-		
+		while(choice1!=5);
+		System.out.println("Total no. of employees created/added :"+Employee.count);
 	}
 }
